@@ -7,8 +7,10 @@ import unittest
 import ase
 import tensorflow as tf
 
+
 class TestSanity(unittest.TestCase):
     def test0(self):
+        print(ase.__version__)
         self.assertTrue(True)
         self.assertFalse(False)
 
@@ -17,7 +19,7 @@ class TestSanity(unittest.TestCase):
 
         self.assertNotEqual(1, 2)
         self.assertNotAlmostEqual(0, 1e-6, 6)
-        
+
         self.assertGreater(1, 0)
         self.assertGreaterEqual(0, 0)
         self.assertGreaterEqual(1, 0)
@@ -28,7 +30,7 @@ class TestSanity(unittest.TestCase):
 
         self.assertIn(1, [0, 1])
         self.assertNotIn(2, [0, 1])
-        
+
         self.assertIsNone(None)
         self.assertIsNotNone(True)
 
@@ -40,20 +42,18 @@ class TestSanity(unittest.TestCase):
 
         self.assertTupleEqual((1, 2, 3), (1, 2, 3))
 
-
         self.assertSetEqual(set([0, 1]), set([1, 1, 0]))
 
-        s = '''a long 
+        s = '''a long
 multiline
 string'''
         self.assertMultiLineEqual(s, s)
-        
+
         with self.assertRaises(ZeroDivisionError):
             1 / 0
 
         self.assertCountEqual([0, 1, 1], [1, 0, 1])
 
-        
     def test1(self):
         from mlp.sanity import sanity0
         self.assertTrue(sanity0() == 2)
@@ -70,10 +70,8 @@ class TFTest(tf.test.TestCase):
         from mlp.sanity import sanity1
         with self.test_session():
             self.assertEqual(sanity1().eval(), 2)
-        
 
 
 if __name__ == '__main__':
     unittest.main()
     tf.test.main()
-    
