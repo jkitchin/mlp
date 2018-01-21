@@ -5,7 +5,7 @@ Also, they remind me of the unittest structure.
 """
 import unittest
 import ase
-import tensorflow
+import tensorflow as tf
 
 class TestSanity(unittest.TestCase):
     def test0(self):
@@ -59,6 +59,15 @@ string'''
         self.assertTrue(sanity0() == 2)
 
 
+# See https://www.tensorflow.org/api_guides/python/test
+class TFTest(tf.test.TestCase):
+    def testSquare(self):
+        with self.test_session():
+            x = tf.square([2, 3])
+            self.assertAllEqual(x.eval(), [4, 9])
+
+
 if __name__ == '__main__':
     unittest.main()
+    tf.test.main()
     
