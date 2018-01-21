@@ -1,3 +1,6 @@
+group: deprecated-2017Q4
+dist: trusty
+sudo: required
 language: python
 python:
   # We don't actually use the Travis Python, but this keeps it organized.
