@@ -32,6 +32,7 @@ install:
   - python setup.py install
   - pip install python-coveralls nose-cov coverage
   - pip install ase
+  - pip install autograd
   - pip install tensorflow
 
 # Run test
