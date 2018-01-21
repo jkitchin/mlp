@@ -30,10 +30,12 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose
   - source activate test-environment
   - python setup.py install
+  - pip install python-coveralls nose-cov coverage
   - pip install ase
 
 # Run test
 script:
+  - cd
   - pwd
   - nosetests -v --with-coverage
   - coverage run --source=mlp	setup.py nosetests
