@@ -4,7 +4,4 @@ TODO.
 <a href="https://travis-ci.org/jkitchin/mlp"><img src="https://travis-ci.org/jkitchin/mlp.svg?branch=master"></a>
 
 <a href='https://coveralls.io/r/jkitchin/mlp'><img src='https://coveralls.io/repos/jkitchin/mlp/badge.png' alt='Coverage Status' /></a>
-<a href="http://depsy.org/package/python/mlp">
-    <img src="http://depsy.org/api/package/pypi/mlp/badge.svg">
-</a>
 #+END_HTML
