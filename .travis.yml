@@ -35,7 +35,6 @@ install:
 
 # Run test
 script:
-  - cd
   - pwd
   - nosetests -v --with-coverage
   - coverage run --source=mlp	setup.py nosetests
