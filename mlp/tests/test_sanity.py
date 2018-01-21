@@ -66,6 +66,12 @@ class TFTest(tf.test.TestCase):
             x = tf.square([2, 3])
             self.assertAllEqual(x.eval(), [4, 9])
 
+    def testsanity1(self):
+        from mlp.sanity import sanity1
+        with self.test_session():
+            self.assertEqual(sanity1().eval(), 2)
+        
+
 
 if __name__ == '__main__':
     unittest.main()
