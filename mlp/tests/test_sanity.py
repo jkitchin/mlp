@@ -5,6 +5,7 @@ Also, they remind me of the unittest structure.
 """
 import unittest
 import ase
+import tensorflow
 
 class TestSanity(unittest.TestCase):
     def test0(self):
