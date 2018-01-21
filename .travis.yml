@@ -1,3 +1,5 @@
+# adapted from https://conda.io/docs/travis.html
+
 group: deprecated-2017Q4
 dist: trusty
 sudo: required
@@ -28,7 +30,7 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose
   - source activate test-environment
   - python setup.py install
-
+  - pip install ase
 
 # Run test
 script:
