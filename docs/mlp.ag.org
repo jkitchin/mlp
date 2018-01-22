@@ -1,0 +1,174 @@
+#+TITLE: Autograd modules
+
+* Training the Lennard Jones parameters
+
+There is a database of DFT calculations of Ar in [[./argon.db]]. Here is a brief description of the database. It contains five structures at three different volumes each. For each volume and structure the atoms were randomly displaced many times, and the energy and forces were computed using DFT (Vasp).
+
+#+BEGIN_SRC python :results output org
+from collections import Counter
+import ase.db
+
+db = ase.db.connect('argon.db')
+data = db.select()
+
+keys, cnt = {}, 0
+for entry in data:
+    cnt += 1
+    for k, v in entry.key_value_pairs.items():
+
+        if k in keys:
+            keys[k] += [v]
+        else:
+            keys[k] = [v]
+
+print ('{0:15s} {1:15s} {2} calculations total'.format('keyword', 'value',cnt))
+
+print('------------------------------------------------------')
+
+for k, v in keys.items():
+    vals = list(set(v))
+
+    if len(vals) <= 5:
+        val = ", ".join(str(e)[:5] for e in vals)
+        print('{0:5}: {1}'.format(k, val))
+
+    else:
+        val = ", ".join(str(e)[:5] for e in vals[:5])
+        print('{0:5s}:{1}, etc...'.format(k, val))
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC org
+keyword         value           139 calculations total
+------------------------------------------------------
+i    :0, 1, 2, 3, 4, etc...
+structure: bcc, sc, hcp, fcc, diamo
+f    : 0.9, 1.0, 1.1
+#+END_SRC
+
+
+We can use the built in pydoc:autograd.misc.optimizers.adam optimizer to find the best set of parameters. We have to provide an initial guess.
+
+#+BEGIN_SRC python :results output org drawer
+import autograd.numpy as np
+from mlp.ag.lennardjones import energy
+from autograd.misc.optimizers import adam
+from autograd import grad
+
+import matplotlib.pyplot as plt
+
+import ase.db
+db = ase.db.connect('argon.db')
+
+known_energies = [row.energy for row in db.select()]
+all_positions = [row.positions for row in db.select()]
+all_cells = [row.cell for row in db.select()]
+
+# Initial guess
+params = {'epsilon': 0.1, 'sigma': 3.5}
+
+def objective(params, step):
+    energies = [energy(params, pos, cell) for pos, cell in zip(all_positions, all_cells)]
+    errs = np.array(energies) - np.array(known_energies)
+    return np.mean(np.abs(errs))
+
+def callback(params, step, gradient):
+    if step % 250 == 0:
+        print(f"Iteration {step:3d} objective {objective(params, step):1.4e} {params}")
+
+max_steps = 10
+loss_goal = 0.001  # meV goal
+for i in range(max_steps):
+    loss = objective(params, i)
+    if loss <= loss_goal:
+        break
+    params = adam(grad(objective), params,
+                  step_size=0.01, num_iters=251, callback=callback)
+
+print(f'Final params = {params} with a MSE of {objective(params, None):1.2e}')
+
+# Save for reuse later. autograd saves the params as 0d arrays, which are not
+# serializable, so we cast them as floats here.
+import json
+with open('argon-lj.json', 'w') as f:
+    f.write(json.dumps({'sigma': float(params['sigma']),
+                        'epsilon': float(params['epsilon'])}))
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+Iteration   0 objective 6.2602e-01 {'epsilon': array(0.1), 'sigma': array(3.5)}
+Iteration 250 objective 8.4186e-03 {'epsilon': array(0.00587756), 'sigma': array(3.74270965)}
+Iteration   0 objective 7.9538e-03 {'epsilon': array(0.00556454), 'sigma': array(3.74498271)}
+Iteration 250 objective 1.0382e-02 {'epsilon': array(0.00669152), 'sigma': array(3.74750141)}
+Iteration   0 objective 1.2286e-02 {'epsilon': array(0.00733371), 'sigma': array(3.74859587)}
+Iteration 250 objective 9.7357e-03 {'epsilon': array(0.0063323), 'sigma': array(3.73883552)}
+Iteration   0 objective 1.2448e-02 {'epsilon': array(0.0072807), 'sigma': array(3.73884313)}
+Iteration 250 objective 1.0117e-02 {'epsilon': array(0.00657116), 'sigma': array(3.74614929)}
+Iteration   0 objective 9.3808e-03 {'epsilon': array(0.00505055), 'sigma': array(3.74806649)}
+Iteration 250 objective 1.2272e-02 {'epsilon': array(0.00721487), 'sigma': array(3.73777666)}
+Iteration   0 objective 1.6849e-02 {'epsilon': array(0.00834753), 'sigma': array(3.7381928)}
+Iteration 250 objective 9.6558e-03 {'epsilon': array(0.0049558), 'sigma': array(3.73947497)}
+Iteration   0 objective 8.6920e-03 {'epsilon': array(0.00595959), 'sigma': array(3.74077319)}
+Iteration 250 objective 9.9340e-03 {'epsilon': array(0.00493319), 'sigma': array(3.74312863)}
+Iteration   0 objective 8.3051e-03 {'epsilon': array(0.00582017), 'sigma': array(3.74143762)}
+Iteration 250 objective 1.4489e-02 {'epsilon': array(0.00421185), 'sigma': array(3.74222197)}
+Iteration   0 objective 1.2023e-02 {'epsilon': array(0.00457744), 'sigma': array(3.73805588)}
+Iteration 250 objective 8.5036e-03 {'epsilon': array(0.00513641), 'sigma': array(3.73923454)}
+Iteration   0 objective 8.9542e-03 {'epsilon': array(0.00601293), 'sigma': array(3.73677435)}
+Iteration 250 objective 8.0786e-03 {'epsilon': array(0.00527856), 'sigma': array(3.74797509)}
+Final params = {'epsilon': array(0.0064569), 'sigma': array(3.74633802)} with a MSE of 9.81e-03
+:END:
+
+Now that we have fitted it, we can reuse it.
+
+#+BEGIN_SRC python :results output org drawer
+import json
+import matplotlib.pyplot as plt
+import ase.db
+import numpy as np
+from mlp.ag.lennardjones import energy
+
+with open('argon-lj.json') as f:
+    params = json.loads(f.read())
+
+db = ase.db.connect('argon.db')
+
+plt.subplot(121)
+for structure, spec in [('fcc', 'b.'),
+                        ('hcp', 'r.'),
+                        ('bcc', 'g.'),
+                        ('diamond', 'gd'),
+                        ('sc', 'bs')]:
+
+    ke, pe = [], []
+    for row in db.select(structure=structure):
+        ke += [row.energy]
+        atoms = row.toatoms()
+
+        pe += [energy(params, atoms.positions, atoms.cell)]
+    plt.plot(ke, pe, spec, label=structure)
+
+plt.plot([-0.1, 0], [-0.1, 0], 'k-', label='parity')
+plt.legend()
+plt.xlabel('DFT')
+plt.ylabel('LJ')
+
+# pred_e = my_lj(LJ_pars)
+# known_energies = np.array([row.energy for row in db.select()])
+err = np.array(ke) - np.array(pe)
+
+plt.subplot(122)
+plt.hist(err)
+plt.xlabel('error')
+plt.tight_layout()
+plt.savefig('lj.png')
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+:END:
+
+[[./lj.png]]
+
+See also: http://kitchingroup.cheme.cmu.edu/blog/2017/11/19/Training-the-ASE-Lennard-Jones-potential-to-DFT-calculations/
