@@ -10,7 +10,7 @@ import tensorflow as tf
 def sanity0():
     """Sanity check function to make sure we are running tests."""
     from ase.build import bulk
-    print(ase.version)
+    print(ase.__version__)
     atoms = bulk('Cu', 'fcc', a=3.6).repeat((2, 1, 1))
     atoms.get_volume()
     # This sanity function just returns 2
