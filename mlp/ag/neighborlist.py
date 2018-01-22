@@ -6,16 +6,22 @@ def get_distances(positions, cell, cutoff_radius, skin=0.01,
                   strain=np.zeros((3, 3))):
     """Get distances to atoms in a periodic unitcell.
 
-    positions: array-like (natoms, 3)
-    cell: array-like (3, 3)
-    cutoff_radius: float
-    skin: float
+    Parameters
+    ----------
+
+    positions: atomic positions. array-like (natoms, 3)
+    cell: unit cell. array-like (3, 3)
+    cutoff_radius: Maximum radius to get neighbor distances for. float
+    skin: A tolerance for the cutoff_radius. float
     strain: array-like (3, 3)
 
-    This returns an array of dimension (atom_i, atom_j, distance) The shape is
+    Returns
+    -------
+
+    distances : an array of dimension (atom_i, atom_j, distance) The shape is
     (natoms, natoms, nunitcells) where nunitcells is the total number of unit
-    cells required to tile the space to be sure all neighbors will be found.
-    The atoms that are outside the cutoff radius are zeroed.
+    cells required to tile the space to be sure all neighbors will be found. The
+    atoms that are outside the cutoff radius are zeroed.
 
     """
     strain_tensor = np.eye(3) + strain
