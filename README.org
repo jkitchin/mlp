@@ -1,15 +1,15 @@
-TODO.
+#+TITLE: mlp
 
 #+BEGIN_HTML
 <a href="https://travis-ci.org/jkitchin/mlp"><img src="https://travis-ci.org/jkitchin/mlp.svg?branch=master"></a>
 
-<a href='https://coveralls.io/r/jkitchin/mlp'><img src='https://coveralls.io/repos/jkitchin/mlp/badge.png' alt='Coverage Status' /></a>
+<a href='https://coveralls.io/github/jkitchin/mlp?branch=master'><img src='https://coveralls.io/repos/github/jkitchin/mlp/badge.svg?branch=master' alt='Coverage Status' /></a>
 #+END_HTML
 
 
 * Development notes
 
-Use this to delete trailing whitespaces.
+Use this to delete trailing white spaces.
 
 #+BEGIN_SRC emacs-lisp
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
