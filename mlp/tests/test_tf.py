@@ -1,10 +1,11 @@
 """Tests for tensorflow module."""
-
+import itertools
 import numpy as np
 import tensorflow as tf
 
 from mlp.tf.utils import (tri, triu_indices, tril_indices,
-                          triu_indices_from, tril_indices_from)
+                          triu_indices_from, tril_indices_from,
+                          combinations)
 
 
 class TestTFUtils_tri(tf.test.TestCase):
@@ -180,3 +181,13 @@ class TestTFUtils_tril_indices_from(tf.test.TestCase):
         with self.test_session():
             self.assertTrue(np.all(ref1 == tref1.eval()))
             self.assertTrue(np.all(ref2 == tref2.eval()))
+
+
+class TestTFUtils_combinations(tf.test.TestCase):
+    def test_combinations_2(self):
+        a = [0, 1, 2, 3, 4]
+        for k in [2, 3]:
+            combs = np.array(list(itertools.combinations(a, k)))
+            with self.test_session():
+                tf_combs = combinations(a, k).eval()
+                self.assertTrue(np.all(combs == tf_combs))

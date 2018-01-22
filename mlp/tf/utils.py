@@ -1,7 +1,11 @@
 """Tensorflow utilities.
 
-"""
+These are mostly functions that bring additional numpy functionality to
+Tensorflow.
 
+"""
+import itertools
+import numpy as np
 import tensorflow as tf
 
 
@@ -119,3 +123,33 @@ def tril_indices_from(arr, k=0):
     if len(shape) != 2:
         raise ValueError("Tensor must be 2d")
     return tril_indices(shape[-2], k=k, m=shape[-1])
+
+
+def combinations(arr, k):
+    """Return tensor of combinations of k elements.
+
+    Parameters
+    ----------
+    arr : 1D array or tensor
+    k : number of elements to make combinations of .
+
+    Returns
+    -------
+    a 2D tensor of combinations. Each row is a combination, and each element of
+    the combination is in the columns.
+
+
+    Related: pydoc:itertools.combinations
+
+    """
+    tensor = tf.convert_to_tensor(arr)
+
+    shape = tensor.get_shape().as_list()
+    if len(shape) != 1:
+        raise ValueError("Tensor must be 1d")
+
+    N = shape[0]
+    inds = np.arange(N)
+    combination_indices = [combination for combination
+                           in itertools.combinations(inds, k)]
+    return tf.stack([tf.gather(arr, ind) for ind in combination_indices])
