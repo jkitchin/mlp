@@ -18,5 +18,6 @@ def sanity0():
 
 
 def sanity1():
+    """Sanity function to see if tensorflow is working."""
     a = tf.constant(1)
     return 2 * a
