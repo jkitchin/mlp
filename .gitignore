@@ -1,2 +1,3 @@
 __pycache__
 mlp.egg-info
+*.pyc
