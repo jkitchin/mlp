@@ -70,8 +70,3 @@ class TFTest(tf.test.TestCase):
         from mlp.sanity import sanity1
         with self.test_session():
             self.assertEqual(sanity1().eval(), 2)
-
-
-if __name__ == '__main__':
-    unittest.main()
-    tf.test.main()
