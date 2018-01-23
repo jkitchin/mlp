@@ -4,7 +4,7 @@ from ase.build import bulk
 from ase.neighborlist import NeighborList
 from ase.calculators.lj import LennardJones
 
-from mlp.ag.neighborlist import get_distances
+from mlp.ag.neighborlist import get_distances, get_neighbors_oneway
 from mlp.ag.lennardjones import energy, forces, stress
 
 
@@ -36,6 +36,38 @@ class TestNeighborList(unittest.TestCase):
                 nns = inds.sum((1, 2))
 
                 self.assertTrue(np.all(nns_ase == nns))
+
+
+class TestNeighborListOneWay(unittest.TestCase):
+    def test0(self):
+        a = 3.6
+        for rep in ((1, 1, 1),
+                    (2, 1, 1),
+                    (1, 2, 1),
+                    (1, 1, 2),
+                    (1, 2, 2),
+                    (2, 1, 1),
+                    (2, 2, 1),
+                    (2, 2, 2),
+                    (1, 2, 3)):
+            for cutoff_radius in np.linspace(a / 2, 5 * a, 5):
+                atoms = bulk('Cu', 'fcc', a=a).repeat(rep)
+
+                nl = NeighborList([cutoff_radius / 2] * len(atoms), skin=0.0,
+                                  self_interaction=False, bothways=False)
+                nl.update(atoms)
+
+                neighbors, displacements = get_neighbors_oneway(atoms.positions,
+                                                                atoms.cell,
+                                                                cutoff_radius)
+
+                for i in range(len(atoms)):
+                    an, ad = nl.get_neighbors(i)
+                    # These are the indices
+                    self.assertEqual(len(neighbors[i]), len(an))
+                    self.assertCountEqual(neighbors[i], an)
+
+                    # I am not sure how to test for the displacements.
 
 
 class TestLennardJones(unittest.TestCase):
