@@ -203,3 +203,9 @@ class TestTFUtils_combinations(tf.test.TestCase):
             with self.test_session():
                 tf_combs = combinations(a, k).eval()
                 self.assertTrue(np.all(combs == tf_combs))
+
+    def test_combinations_non1d(self):
+        a = [[0, 1, 2, 3, 4]]
+        with self.assertRaises(ValueError):
+            with self.test_session():
+                tf_combs = combinations(a, 2).eval()
