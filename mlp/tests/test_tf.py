@@ -151,6 +151,12 @@ class TestTFUtils_triu_indices_from(tf.test.TestCase):
             self.assertTrue(np.all(ref1 == tref1.eval()))
             self.assertTrue(np.all(ref2 == tref2.eval()))
 
+    def test_triu_indices_from_non2d(self):
+        a = np.zeros((3, 3, 3))
+        with self.test_session():
+            with self.assertRaises(ValueError):
+                triu_indices_from(a)
+
 
 class TestTFUtils_tril_indices_from(tf.test.TestCase):
     def test_tril_indices_from(self):
@@ -181,6 +187,12 @@ class TestTFUtils_tril_indices_from(tf.test.TestCase):
         with self.test_session():
             self.assertTrue(np.all(ref1 == tref1.eval()))
             self.assertTrue(np.all(ref2 == tref2.eval()))
+
+    def test_tril_indices_from_non2d(self):
+        a = np.zeros((3, 3, 3))
+        with self.test_session():
+            with self.assertRaises(ValueError):
+                tril_indices_from(a)
 
 
 class TestTFUtils_combinations(tf.test.TestCase):
