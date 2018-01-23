@@ -76,3 +76,77 @@ def get_distances(positions, cell, cutoff_radius, skin=0.01,
     d = np.where(zeros, np.zeros_like(d2), np.sqrt(adjusted))
 
     return np.where(d <= cutoff_radius + skin, d, np.zeros_like(d))
+
+
+def get_neighbors_oneway(positions, cell, cutoff_radius,
+                         skin=0.01,
+                         strain=np.zeros((3, 3))):
+    """A one-way neighbor list.
+
+    Parameters
+    ----------
+
+    positions: atomic positions. array-like (natoms, 3)
+    cell: unit cell. array-like (3, 3)
+    cutoff_radius: Maximum radius to get neighbor distances for. float
+    skin: A tolerance for the cutoff_radius. float
+    strain: array-like (3, 3)
+
+    Returns
+    -------
+    indices, offsets
+
+    """
+
+    strain_tensor = np.eye(3) + strain
+    cell = np.dot(strain_tensor, cell.T).T
+    positions = np.dot(strain_tensor, positions.T).T
+
+    inverse_cell = np.linalg.pinv(cell)
+    h = 1 / np.linalg.norm(inverse_cell, axis=0)
+    N = (2 * cutoff_radius / h).astype(int) + 1
+
+    scaled = np.dot(positions, inverse_cell)
+    scaled0 = scaled.copy() % 1.0
+
+    offsets = (scaled0 - scaled).round().astype(int)
+    positions0 = positions + np.dot(offsets, cell)
+    natoms = len(positions)
+    indices = np.arange(natoms)
+
+    v0_range = np.arange(0, N[0] + 1)
+    v1_range = np.arange(-N[1], N[1] + 1)
+    v2_range = np.arange(-N[2], N[2] + 1)
+
+    xhat = np.array([1, 0, 0])
+    yhat = np.array([0, 1, 0])
+    zhat = np.array([0, 0, 1])
+
+    v0_range = v0_range[:, None] * xhat[None, :]
+    v1_range = v1_range[:, None] * yhat[None, :]
+    v2_range = v2_range[:, None] * zhat[None, :]
+
+    N = (v0_range[:, None, None] +
+         v1_range[None, :, None] +
+         v2_range[None, None, :])
+
+    N = N.reshape(-1, 3)
+
+    neighbors = [np.empty(0, int) for a in range(natoms)]
+    displacements = [np.empty((0, 3), int) for a in range(natoms)]
+
+    for n1, n2, n3 in N:
+        if n1 == 0 and (n2 < 0 or (n2 == 0 and n3 < 0)):
+            continue
+        displacement = np.dot((n1, n2, n3), cell)
+        for a in range(natoms):
+            d = positions0 + displacement - positions0[a]
+            i = indices[(d**2).sum(1) < (cutoff_radius)**2]
+            if n1 == 0 and n2 == 0 and n3 == 0:
+                i = i[i > a]
+            neighbors[a] = np.concatenate((neighbors[a], i))
+            disp = np.empty((len(i), 3), int)
+            disp[:] = (n1, n2, n3)
+            disp += offsets[i] - offsets[a]
+            displacements[a] = np.concatenate((displacements[a], disp))
+    return neighbors, displacements
